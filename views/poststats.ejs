@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>Update Profile</title>
+    <link rel="icon" type="image/x-icon" href="/images/iconimages/edit_4.png">
+</head>
+<body class="bg-zinc-900 text-white">
+    <header>
+        <nav class="flex justify-between mx-5 my-5">
+            <div class="flex justify-between">
+                <img src="/images/iconimages/edit_4.png" width="25" height="21" alt="icon">
+                <a class="mx-2" href="/">SayMyName</a></div>
+            <div class="flex justify-between gap-2">
+                <div class="flex hover:bg-white hover:text-zinc-900 rounded-md px-2 py-1 gap-2">
+                    <img class="rounded-full border" src="/images/profileimages/clark kent.JPG" width="25" height="25" alt="userprofilepicture">
+                    <div class=" text-sm"><a href="/profile">Profile</a></div>
+                    </div>
+            <div class="hover:bg-white hover:text-zinc-900 rounded-md p-1 text-sm"><a href="/Home">Home</a></div>
+            <div class="hover:bg-white hover:text-zinc-900 rounded-md p-1 text-sm"><a href="/logout">Logout</a></div>
+        </div>
+        </nav>    
+    </header>
+    
+    <main class="flex justify-center gap-40 bg-zinc-700 h-144 p-10">
+        <div class="bg-zinc-800 p-3 mb-5 rounded-md h-[300px]" id="postcontainer">
+            <div class="flex gap-2">
+            <img class="rounded-full border" src="/images/profileimages/clark kent.JPG" width="20" height="20" alt="userprofilepicture">
+            <p class="text-white text-sm">@username</p>
+            </div>
+            <div class="border border-3 rounded-md mt-2"><img src="/images/postimages/supernan.webp" height="" width="300" alt="postimage"></div>
+            <button class=" rounded-md hover:bg-white hover:p-1" onclick="(alert('like added'))"><p>❤</p></button>
+            <a class=" rounded-md hover:bg-zinc-900 hover:text-white" href="#viewlikes">5 likes</a>
+            <a class=" rounded-md hover:bg-zinc-900 hover:text-white" href="#viewcomments"> <span> 🗨</span> 2 comments</a>
+            <div>
+            <input class="rounded-md m-1 px-1 outline-none border border-1 border-zinc-500 w-[130px] placeholder:text-[12px]" type="text" name="comment" placeholder="enter comment">
+            <button  class="rounded-md mb-2 outline-none border border-1 bg-zinc-900 text-white-700 border-zinc-900 hover:bg-white hover:text-zinc-900 w-[45px]" onclick="(alert('comment added'))"><p>Post</p></button>
+            </div>
+            <p class="px-1 text-white text-[10px]">01:25PM, July 25 2025</p>
+        </div>
+        <div>
+        <p class="text-xl mb-4">User Liked the Post </p>
+        <ul class="list-disc">
+            <li>@batman</li>
+            <li>@spiderman</li>
+            <li>@joker</li>
+            <li>@robin</li>
+            <li>@moonnight</li>
+            
+        </ul>
+    </div>
+    <div>
+        <p class="text-xl mb-4">Comments</p>
+        <ul class="list-disc">
+            <li>@batman : damn!!!</li>
+            <li>@ironman : Absolute fire.</li>
+        </ul>
+    </div>
+    </main>
+
+    <footer>
+        <div class="flex justify-center items-center my-2 h-[32px]">
+            <div>
+                SayMyName® - 2025    
+            </div>
+        </div>      
+    </footer>
+    
+</body>
+</html>

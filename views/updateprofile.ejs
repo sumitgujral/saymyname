@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>Update Profile</title>
+    <link rel="icon" type="image/x-icon" href="/images/iconimages/edit_4.png">
+</head>
+<body class="bg-zinc-900 text-white">
+    <header>
+        <nav class="flex justify-between mx-5 my-5">
+            <div class="flex justify-between">
+                <img src="/images/iconimages/edit_4.png" width="25" height="21" alt="icon">
+                <a class="mx-2" href="/">SayMyName</a></div>
+            <div class="flex justify-between gap-2">
+                    <div class="flex text-sm hover:bg-white hover:text-zinc-900 rounded-md px-2 py-1 gap-2">
+                        <a href="/profile"><img class="rounded-full border" src="/images/profileimages/clark kent.JPG" width="25" height="25" alt="userprofilepicture"></a>
+                        <a href="/profile">Profile</a>
+                    </div>
+            <div class="hover:bg-white hover:text-zinc-900 rounded-md p-1 text-sm"><a href="/home">Home</a></div>
+            <div class="hover:bg-white hover:text-zinc-900 rounded-md p-1 text-sm"><a href="/logout">Logout</a></div>
+        </div>
+        </nav>    
+    </header>
+    <main class="bg-zinc-700 h-144 p-10">
+        <p class="text-2xl text-center mb-10">Update Profile</p>
+        <div class="flex justify-center gap-40" id="updateprofileform"> 
+            <form class="flex flex-col mt-5" action="/update" method="post">
+                <p class="text-lg mb-3">Basic Profile Details</p>
+                <input class="rounded-md mb-2 px-2 p-1 outline-none border border-2 border-zinc-500 text-zinc-300" type="text" name="oldname" id="oldname" value="Kent Clark" placeholder="Kent Clark" readonly>
+                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="newname" id="newname" placeholder="newname">
+                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="oldpassword" id="oldpassword" placeholder="oldpassword">
+                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="newpassword" id="newpassword" placeholder="newpassword">
+                <input class="bg-zinc-900 rounded-md text-sm mb-3 px-2 py-2" type="file" name="profileimage" accept="image/*" placeholder="newpassword">
+                <button class="rounded-md mb-2 px-2 py-1 outline-none bg-zinc-900 w-1/2 hover:bg-white hover:text-zinc-900" type="submit">Update</button>
+            </form>
+            <div class="border-zinc-500 border-1"></div>
+            <form class="flex flex-col mt-5" action="/updateoptionaldetails" method="post">
+                <p class="text-lg mb-3">Optional Profile Details</p>
+                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500 w-65" type="text" name="dob" id="dob" placeholder="DOB(DD-MM-YYYY)">
+                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="gender" id="gender" placeholder="gender">
+                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="phonenumber" id="phonenumber" placeholder="phonenumber">
+                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="pincode" id="pincode" placeholder="pincode">
+                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="address" id="address" placeholder="address">
+                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="maritalstatus" id="maritalstatus" placeholder="maritalstatus">
+                <button class="rounded-md mb-2 px-2 py-1 outline-none bg-zinc-900 w-1/2 hover:bg-white hover:text-zinc-900" type="submit">Update</button>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        <div class="flex justify-center items-center my-2 h-[32px]">
+            <div>
+                SayMyName® - 2025    
+            </div>
+        </div>      
+    </footer>
+    
+</body>
+</html>

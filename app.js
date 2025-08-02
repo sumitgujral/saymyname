@@ -1,0 +1,347 @@
+const express = require('express');
+const app = express();
+const path = require('path');
+const conn = require('./controllers/mongooseconnection')
+const userModel = require('./models/userModel');
+const postModel = require('./models/postModel');
+const commentModel = require('./models/commentModel');
+const otpverificationModel = require('./models/otpverificationModel');
+const bcrypt = require('bcrypt');
+const nodemailer = require('nodemailer');
+const jwt = require('jsonwebtoken');
+const flash = require('connect-flash');
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
+
+app.set('view engine','ejs')
+app.use(express.static(path.join(__dirname,'public')));
+app.use(express.json());
+app.use(express.urlencoded({extended:true}));
+app.use(session({
+  secret : process.env.SESSION_SECRET_KEY,
+  saveUninitialized : true,
+  resave : true
+}))
+app.use(cookieParser());
+app.use(flash());
+
+app.use((req, res, next) => {
+  res.locals.errors_msg = req.flash('errors');
+  res.locals.success_msg = req.flash('success');
+  res.locals.warning_msg = req.flash('warning');
+  res.locals.info_msg = req.flash('info');
+  res.locals.login_error_msg =  req.flash('login_error');
+  res.locals.registration_error_msg =  req.flash('registration_error');
+  res.locals.otp_error_msg =  req.flash('otp_error');
+  res.locals.invalid_email_error_msg =  req.flash('invalid_email_error');
+  res.locals.email_invalid_error_msg =  req.flash('email_invalid_error');  
+  res.locals.code_invalid_error_msg =  req.flash('code_invalid_error');
+  res.locals.reset_sucess_msg =  req.flash('reset_sucess');
+  next();
+});
+
+let transporter = nodemailer.createTransport({
+  host : "smtp.mailersend.net",
+  port: 587,
+  auth: {
+    user: process.env.SMTP_AUTH_EMAIL,
+    pass: process.env.SMTP_AUTH_PASSWORD,
+  }
+})
+
+let cookieExpiry = new Date(Date.now() + 604800000) // cookie expire after 1 week
+let privatekeyforJWT = process.env.PRIVATEKEYJWT;
+
+
+function isLoggedIn(req,res,next){
+  if(req.cookies.loogedincookie===""){
+       return res.redirect("/")
+  }
+  else{
+      let data = jwt.verify(req.cookies.loogedincookie, privatekeyforJWT);
+      req.user = data;
+      next();
+      }
+  }
+
+
+app.get('/', async (req, res) => {
+  if(req.cookies.loogedincookie){
+    return res.redirect('/home')
+  }else{
+    return res.render('index');
+  }
+})
+
+app.post('/getotp', async (req,res)=>{
+  let {email} = req.body;
+  console.log(email)
+  try{
+  let otp = Math.floor(`${1000 + Math.random() * 9000}`);
+  let expiryDate = new Date(Date.now() + 86400000);
+  const mailOptions = {
+    from : process.env.SMTP_AUTH_EMAIL,
+    to : email,
+    subject : "Confirm your email for your SayMyName account",
+    html : `<div class="flex flex-col justify-between items-center text-white bg-zinc-900 text-center p-5">
+                        <p class="text-xl text-center">Greetings,</p>   
+                           <p class="text-lg text-center"> Use the below four digits code to verify your email and sign up.</p>
+                              <p class="text-sm text-center">Verification Code will exipre on ${expiryDate}</p>
+                <div class="text-2xl rounded-2xl m-4 text-zinc-900 font-bold text-center p-5 border-zinc-700 bg-zinc-400">${otp}</div>
+                    <p>SayMyName&#174;</p>
+            </div>`
+        } 
+
+  let emailcheck = await otpverificationModel.findOne({email});
+  if(emailcheck){
+    await transporter.sendMail(mailOptions,async (error, info) => {
+      if (error) {
+          console.error('Error sending in privious email:', error);
+          req.flash('otp_error',`Issue with ${email} account.`);
+          return res.redirect('/')
+      } else {
+          console.log('Email sent on privious mail:', info.response);
+          req.flash('success',`Verification mail is send on ${email}`);
+          let emailcheck = await otpverificationModel.updateOne({ email },{ $push: { verificationcodeGenerated: otp } })
+          return res.redirect('/')
+      }
+  });
+  }else{
+      await transporter.sendMail(mailOptions, async(error, info) => {
+      if (error) {
+          console.error('Error sending in new email:', error);
+          req.flash('otp_error',`Issue with ${email} account.`);
+          return res.redirect('/')
+      } else {
+          console.log('Email sent on new mail:', info.response);
+          req.flash('success',`Verification mail is send on ${email}`);
+          let verificationcode = await otpverificationModel.create({
+            email,
+            verificationcodeGenerated : otp,
+            createdAt : Date.now(),
+            expireAt : expiryDate,
+          });
+          return res.redirect('/')
+      }
+  }); 
+}
+  } catch (error){
+    console.error('Error in getotp configration : ', error);
+  }
+})
+
+app.post('/register', async (req,res) =>{
+  let {email,username,name,password,verificationcode} = req.body;
+    try {
+      let existingUser = await userModel.findOne({$or : [{username},{email}]})
+      if(existingUser){
+        if(existingUser.email==email){
+          req.flash('registration_error','Email Already Exists.') 
+        }else{
+          req.flash('registration_error','username is already taken.')
+        }
+        return res.redirect('/')
+      }
+      
+  let verficationcodeData = await otpverificationModel.findOne({email})
+  let verificationcodeGeneratedArray = verficationcodeData.verificationcodeGenerated;
+  let validOtp = verificationcodeGeneratedArray[verificationcodeGeneratedArray.length-1];
+  if(validOtp!=verificationcode)
+  {
+    req.flash('registration_error','Verification Code is Invalid');
+    return res.redirect('/')
+  }
+  else{
+  bcrypt.genSalt(10, async function(err, salt) {
+      bcrypt.hash(password, salt, async function(err, hash) {
+          let user = await userModel.create({
+            email,
+            username,
+            name,
+            password:hash,
+            verificationcode,
+            verified : true
+          })
+        })
+      })
+    }
+      let jwttoken = jwt.sign({ email : existingUser.email , userid : existingUser._id},privatekeyforJWT);
+      res.cookie('loogedincookie',jwttoken,{expires: cookieExpiry});
+      return res.render('home')
+    } catch (error) {
+      console.error('Error in register configration : ', error)
+    }
+})
+
+app.post('/login', async (req, res) => {
+  let { usernameoremail, password} = req.body;
+  try {
+      let existingUser = await userModel.findOne({$or : [{username : usernameoremail},{email :usernameoremail}]})
+      if(!existingUser){
+        req.flash('login_error','Invalid Email or username ')
+        return res.redirect('/')
+      }
+  hashedpassword = existingUser.password;
+  bcrypt.compare(password, hashedpassword, function(err, result) {
+    if(result==true){
+      let jwttoken = jwt.sign({ email : existingUser.email , userid : existingUser._id },privatekeyforJWT);
+      res.cookie('loogedincookie',jwttoken,{expires: cookieExpiry});
+      return res.redirect('/home')
+      }else{
+        req.flash('login_error','Invalid Password');
+        return res.redirect('/')
+      }
+  });
+} catch (error) {
+    console.error('Error in login configration : ', error)
+}
+})
+
+app.get('/forgetpassword', (req, res) => {
+   res.render('forgetpassword')
+})
+
+app.post('/getresetpasswordotp', async (req, res) => {
+  let { emailorusername } = req.body;
+  let existingUser = await userModel.findOne({$or : [{username : emailorusername},{email : emailorusername}]})
+  if(!existingUser){
+    req.flash('login_error','Invalid Email or username ')
+    return res.redirect('/forgetpassword')
+  }
+  let otp = Math.floor(`${1000 + Math.random() * 9000}`);
+  let expiryDate = new Date(Date.now() + 86400000);
+  
+
+  let sendotpbyEmail = await userModel.findOne({email : emailorusername});
+    if(sendotpbyEmail){
+      let email = sendotpbyEmail.email;
+      const mailOptions = {
+        from : process.env.SMTP_AUTH_EMAIL,
+        to : email,
+        subject : "Reset password of your SayMyName account",
+        html : `<div class="flex flex-col justify-between items-center text-white bg-zinc-900 text-center p-5">
+                            <p class="text-xl text-center">Greetings,</p>   
+                               <p class="text-lg text-center"> Use the below four digits code for reset your account password.</p>
+                                  <p class="text-sm text-center">Verification Code will exipre on ${expiryDate}</p>
+                    <div class="text-2xl rounded-2xl m-4 text-zinc-900 font-bold text-center p-5 border-zinc-700 bg-zinc-400">${otp}</div>
+                        <p>SayMyName&#174;</p>
+                </div>`
+            }
+      await transporter.sendMail(mailOptions, async (error, info) => {
+      if (error) {
+          console.error('Error sending in reset password email:', error);
+          req.flash('otp_error',`Issue with ${email} account.`);
+          return res.redirect('/forgetpassword')
+      } else {
+          console.log('Email sent on mail:', info.response);
+          req.flash('success',`Reset password mail is send on ${email}`);
+          await otpverificationModel.updateOne({ email },{ $push: { verificationcoderesetpassword: otp } });
+          return res.redirect('/forgetpassword')
+      }
+  });
+  }
+    let sendotpbyusername = await userModel.findOne({username : emailorusername});
+    if(sendotpbyusername){
+       let email = sendotpbyusername.email;
+       const mailOptions = {
+        from : process.env.SMTP_AUTH_EMAIL,
+        to : email,
+        subject : "Reset password of your SayMyName account",
+        html : `<div class="flex flex-col justify-between items-center text-white bg-zinc-900 text-center p-5">
+                            <p class="text-xl text-center">Greetings,</p>   
+                               <p class="text-lg text-center"> Use the below four digits code for reset your account password.</p>
+                                  <p class="text-sm text-center">Verification Code will exipre on ${expiryDate}</p>
+                    <div class="text-2xl rounded-2xl m-4 text-zinc-900 font-bold text-center p-5 border-zinc-700 bg-zinc-400">${otp}</div>
+                        <p>SayMyName&#174;</p>
+                </div>`
+            }
+       await transporter.sendMail(mailOptions, async (error, info) => {
+        if (error) {
+            console.error('Error sending in reset password email:', error);
+            req.flash('otp_error',`Issue with ${email} account.`);
+            return res.redirect('/forgetpassword')
+        } else {
+            console.log('Email sent on mail:', info.response);
+            req.flash('success',`Reset password mail is send on ${email.slice(0,2)+"*".repeat(5 - 2)+email.slice(5)}`);
+            await otpverificationModel.updateOne({ email },{ $push: { verificationcoderesetpassword: otp } });
+            return res.redirect('/forgetpassword')
+        }
+    });
+    }
+})
+
+
+app.post('/resetpassword', async (req,res) =>{
+  let { email, verificationcode, newpassword} = req.body;
+  let existsUser = await userModel.findOne({email :email})
+      if(!existsUser){
+        req.flash('email_invalid_error','Invalid Email')
+        return res.redirect('/forgetpassword')
+      }
+  let verficationcodeData = await otpverificationModel.findOne({email})
+  let verificationcoderesetpasswordArray = verficationcodeData.verificationcoderesetpassword;
+  let validOtp = verificationcoderesetpasswordArray [verificationcoderesetpasswordArray.length-1];
+  if(validOtp!=verificationcode)
+  {
+    req.flash('code_invalid_error','Verification Code is Invalid');
+    return res.redirect('/forgetpassword')
+  }else{
+    bcrypt.genSalt(10, async function(err, salt) {
+      bcrypt.hash(newpassword, salt, async function(err, hash) {
+        let userupdatePassword = await userModel.updateOne({email},{
+          $set: {
+            verificationcode : verificationcode,
+            password:hash,
+          }
+        })
+      })
+    })
+    req.flash('reset_sucess','Password Reset Successful.')
+    return res.redirect('/forgetpassword')
+  }
+})
+
+app.get('/updateprofile',isLoggedIn, (req, res) => {
+    res.render('updateprofile')
+  })
+
+app.post('/update',isLoggedIn, (req, res) => {
+    let{newname,oldpassword,newpassword,profileimage} = req.body;
+    
+    res.render('updateprofile')
+  })
+
+app.post('/updateoptionaldetails',isLoggedIn, (req, res) => {
+    res.render('updateprofile')
+})
+
+app.get('/profile',isLoggedIn, (req, res) => {
+    res.render('profile')
+  })
+
+app.get('/home',isLoggedIn, (req, res) => {
+    res.render('home')
+  })
+
+
+
+app.get('/logout', (req, res) => {
+    res.cookie('loogedincookie',"");
+    res.redirect('/')
+  })
+
+
+app.get('/poststats',isLoggedIn,(req, res) => {
+    res.render('poststats')
+  })
+
+
+ 
+app.get('/support', (req, res) => {
+    res.render('support')
+  })
+  
+
+app.listen(3000, () => {
+    console.log(`app is running `)
+})

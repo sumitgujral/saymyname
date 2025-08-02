@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>Profile</title>
+    <link rel="icon" type="image/x-icon" href="/images/iconimages/edit_4.png">
+</head>
+<body class="bg-zinc-900 text-white">
+    <header class="sticky top-0 bg-zinc-900 px-[20px] pb-[5px] pt-[20px] h-[68px]">
+        <nav class="flex justify-between ">
+            <div class="flex justify-between">
+                <img src="/images/iconimages/edit_4.png" width="25" height="21" alt="icon">
+                <a class="mx-2" href="/">SayMyName</a></div>
+            <div class="flex justify-between gap-2">
+            <div class="hover:bg-white hover:text-zinc-900 rounded-md p-1 text-sm"><a href="/home">Home</a></div>
+            <div class="hover:bg-white hover:text-zinc-900 rounded-md p-1 text-sm"><a href="/logout">Logout</a></div>
+        </div>
+        </nav>    
+    </header>
+    <main class="flex flex-grow justify-center min-h-144 gap-50 bg-zinc-700 p-10">
+        <div id="posts">
+            <h3 class="text-white text-xl mb-3 text-center">Your Posts</h3>
+            <div class="bg-zinc-800 p-3 mb-5 rounded-md" id="postcontainer">
+                <div class="flex gap-2">
+                <img class="rounded-full border" src="/images/profileimages/clark kent.JPG" width="20" height="20" alt="userprofilepicture">
+                <p class="text-white text-sm">@username</p>
+                </div>
+                <div class="border border-3 rounded-md mt-2"><img class="object-cover h-[160px] w-[300px]" src="/images/postimages/supernan.webp" height="" width="300" alt="postimage"></div>
+                <p class="text-[12px] text-white ml-2 mt-1">Your SuperMan is Here ✔</p>
+                <button class="ml-1 rounded-md text-[13px] hover:bg-white hover:p-1" onclick="(alert('like added'))"><p>❤</p></button>
+                <a class="rounded-md text-[12px] hover:bg-zinc-900 hover:text-white" href="/poststats">5 likes</a>
+                
+                <a class="rounded-md text-[12px] hover:bg-zinc-900 hover:text-white" href="/poststats"> <span> 🗨</span> 2 comments</a>
+                <button class="rounded-md text-[12px] hover:bg-red-800 hover:p-1" onclick="(alert('post deleted'))" ><p>❌ delete</p></button>
+                <div>
+                <input class="rounded-md ml-2 mt-1 px-1 outline-none border border-1 border-zinc-500 w-[130px] placeholder:text-[12px]" type="text" name="comment" placeholder="enter comment">
+                <button  class="rounded-md mb-2 outline-none border border-1 bg-zinc-900 text-white-700 border-zinc-900 hover:bg-white hover:text-zinc-900 w-[45px]" onclick="(alert('comment added'))"><p>Post</p></button>
+                </div>
+                <p class="px-3 text-white text-[10px]">01:25PM, July 25 2025</p>
+            </div>
+            
+        </div>
+        <div class = "border-r-2 border-zinc-400"></div>
+        <div class="flex flex-col">
+        <div class="flex flex-col items-center">
+            <h2 class="text-xl mb-4">Welcome Clark Kent,</h2>
+        <img class="rounded-full border border-4" src="/images/profileimages/clark kent.JPG" width="120" height="90" alt="userprofilepicture">
+        <p class="text-white text-sm">@superman</p>
+        <a class="text-blue-400 text-[10px]" href="/updateprofile">Update Profile</a>  
+        </div>
+        <div class="flex flex-col mt-8 border-t-1">
+        <h3 class="text-white text-xl py-4 text-center">Create Post</h3>
+        <form class=" flex flex-col gap-2" action="" method="post">
+            <input class="bg-zinc-900 rounded-md text-sm p-2" type="file" name="fileforpost">
+            <textarea class="resize-none outline-none border-1 border-zinc-400 rounded-md p-1" name="caption" id="caption" placeholder="Caption.." cols="5" rows="2"></textarea>
+            <button class="bg-zinc-900 rounded-md text-sm outline-none p-1 w-1/3 hover:bg-white hover:text-zinc-900 " type="submit">Create</button>
+        </form>
+    </div>
+</div>
+</main>
+
+    <footer>
+        <div class="flex justify-center items-center my-2 h-[32px]">
+            <div>
+                SayMyName® - 2025    
+            </div>
+        </div>    
+    </footer>
+</body>
+</html>
