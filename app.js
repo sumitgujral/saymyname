@@ -5,6 +5,7 @@ const conn = require('./controllers/mongooseconnection')
 const userModel = require('./models/userModel');
 const postModel = require('./models/postModel');
 const commentModel = require('./models/commentModel');
+const likeModel = require('./models/likeModel');
 const otpverificationModel = require('./models/otpverificationModel');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
@@ -12,6 +13,7 @@ const jwt = require('jsonwebtoken');
 const flash = require('connect-flash');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
+const upload = require('./configs/multerconfig')
 
 app.set('view engine','ejs')
 app.use(express.static(path.join(__dirname,'public')));
@@ -37,8 +39,15 @@ app.use((req, res, next) => {
   res.locals.email_invalid_error_msg =  req.flash('email_invalid_error');  
   res.locals.code_invalid_error_msg =  req.flash('code_invalid_error');
   res.locals.reset_sucess_msg =  req.flash('reset_sucess');
+  res.locals.update_success_msg =  req.flash('update_success');
+  res.locals.update_error_msg =  req.flash('update_error');
+  res.locals.update_optional_success_msg =  req.flash('update_optional_success');
+  res.locals.post_success_msg =  req.flash('post_success');
+
+
   next();
 });
+
 
 let transporter = nodemailer.createTransport({
   host : "smtp.mailersend.net",
@@ -118,7 +127,7 @@ app.post('/getotp', async (req,res)=>{
           let verificationcode = await otpverificationModel.create({
             email,
             verificationcodeGenerated : otp,
-            createdAt : Date.now(),
+            createdAt : new Date(Date.now()),
             expireAt : expiryDate,
           });
           return res.redirect('/')
@@ -133,9 +142,9 @@ app.post('/getotp', async (req,res)=>{
 app.post('/register', async (req,res) =>{
   let {email,username,name,password,verificationcode} = req.body;
     try {
-      let existingUser = await userModel.findOne({$or : [{username},{email}]})
-      if(existingUser){
-        if(existingUser.email==email){
+      let userExists = await userModel.findOne({$or : [{username},{email}]})
+      if(userExists){
+        if(user.email==email){
           req.flash('registration_error','Email Already Exists.') 
         }else{
           req.flash('registration_error','username is already taken.')
@@ -159,15 +168,19 @@ app.post('/register', async (req,res) =>{
             username,
             name,
             password:hash,
+            accountCreated : new Date(Date.now()),
             verificationcode,
             verified : true
           })
+          let jwttoken = jwt.sign({ email : user.email , userid : user._id},privatekeyforJWT);
+          res.cookie('loogedincookie',jwttoken,{expires: cookieExpiry});
+          return res.redirect('/home')
         })
+        
       })
+      
     }
-      let jwttoken = jwt.sign({ email : existingUser.email , userid : existingUser._id},privatekeyforJWT);
-      res.cookie('loogedincookie',jwttoken,{expires: cookieExpiry});
-      return res.render('home')
+    
     } catch (error) {
       console.error('Error in register configration : ', error)
     }
@@ -301,26 +314,105 @@ app.post('/resetpassword', async (req,res) =>{
   }
 })
 
-app.get('/updateprofile',isLoggedIn, (req, res) => {
-    res.render('updateprofile')
-  })
-
-app.post('/update',isLoggedIn, (req, res) => {
-    let{newname,oldpassword,newpassword,profileimage} = req.body;
-    
-    res.render('updateprofile')
-  })
-
-app.post('/updateoptionaldetails',isLoggedIn, (req, res) => {
-    res.render('updateprofile')
+app.get('/updateprofile',isLoggedIn, async(req, res) => {
+  let user = await userModel.findOne({email : req.user.email})
+       res.render('updateprofile',{user});
 })
 
-app.get('/profile',isLoggedIn, (req, res) => {
-    res.render('profile')
+app.post('/update',isLoggedIn,upload.single('profileimage'), async (req, res) => {
+  let { newname ,newpassword ,profileimage , currentpassword} = req.body;
+  let user = await userModel.findOne({email : req.user.email})
+  let match =  bcrypt.compare(currentpassword, user.password);
+  if(match){
+    bcrypt.genSalt(10, async function(err, salt) {
+      bcrypt.hash(newpassword, salt, async function(err, hash) { 
+        if(req.file){
+          let path = req.file.path;
+          let pathwithpublic = `/${path.replace(/public\\/, '').replace(/\\/g, '/')}`;
+          await userModel.findOneAndUpdate({email : req.user.email}, { $set : {name : newname,password: hash,profileimage: pathwithpublic} })
+        }else{
+          await userModel.findOneAndUpdate({email : req.user.email}, { $set : {name : newname,password: hash} })
+        }   
+    })
+    }) 
+    req.flash('update_success','Profile details updated.')
+  }
+  else{
+    req.flash('update_error','Current password is incorrect.')
+  }
+    res.redirect('/updateprofile')
+})
+
+app.post('/updateoptionaldetails',isLoggedIn, async(req, res) => {
+  let {dob, gender, phonenumber, pincode, address, maritalstatus} = req.body;
+    await userModel.findOneAndUpdate({email : req.user.email}, {$set : {dob, gender, phoneNumber : phonenumber, pincode, address, maritalStatus : maritalstatus}})
+    req.flash('update_optional_success','Optional Profile details updated.')
+    res.redirect('/updateprofile')
+})
+
+app.post('/create',isLoggedIn,upload.single('fileforpost'), async(req, res) => {
+  let {caption} = req.body;
+  let user = await userModel.findOne({email : req.user.email})
+  if(req.file){
+  let path = req.file.path;
+  let pathwithpublic = `/${path.replace(/public\\/, '').replace(/\\/g, '/')}`;
+  let post = await postModel.create({
+    userid : user._id,
+    postdata : pathwithpublic,
+    caption,
+    postCreated : new Date(Date.now()),
+  })
+  let pushonuser = await userModel.findOneAndUpdate({email : req.user.email}, { $push : {posts : post._id}});
+  req.flash('post_success',"Post is Created.");
+}else{
+  let post = await postModel.create({
+    userid : user._id,
+    caption,
+    postCreated : new Date(Date.now()),
+})
+let pushonuser = await userModel.findOneAndUpdate({email : req.user.email}, { $push : {posts : post._id}});
+}
+
+res.redirect('/profile')
+})
+
+app.post('/commentpost/:id',isLoggedIn, async (req,res)=>{
+  let  { comment } = req.body;
+    let usercomment = await commentModel.create({
+    userid : req.user.userid,
+    comment,
+    commentCreated : new Date(Date.now())
+  })
+  let post = await postModel.findOneAndUpdate({_id : req.params.id}, {$push : {comment : usercomment._id}})
+  await userModel.findOneAndUpdate({_id : req.user.userid},{ $push : {comment : post._id}})
+  res.redirect('/profile')
+})
+
+app.get('/like/:id',isLoggedIn,async(req,res)=>{
+let post = await postModel.findOneAndUpdate({_id : req.params.id},{ $push : {likes : req.user.userid}})
+await userModel.findOneAndUpdate({_id : req.user.userid},{ $push : {likes : post._id}})
+await likeModel.create({
+  userid : req.user.userid,
+  post : post._id
+})
+res.redirect('/profile')
+})
+
+app.get('/delete/:id',isLoggedIn,async(req,res)=>{
+await postModel.findOneAndDelete({_id : req.params.id})
+res.redirect('/profile')
+})
+
+
+app.get('/profile',isLoggedIn,async (req, res) => {
+    let user = await userModel.findOne({email : req.user.email}).populate('posts');
+    let post = await postModel.findOne({userid : req.user._id})
+    res.render('profile',{user});
   })
 
-app.get('/home',isLoggedIn, (req, res) => {
-    res.render('home')
+app.get('/home',isLoggedIn, async (req, res) => {
+  let user = await userModel.findOne({email : req.user.email})
+  res.render('home',{user});
   })
 
 

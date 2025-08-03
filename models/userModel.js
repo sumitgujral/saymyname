@@ -9,8 +9,8 @@ const userSchema = new Schema({
     verificationcode : String,
     verified : Boolean,
     profileimage : {
-        data : Buffer,
-        contentType : String
+        type : String,
+        default : '/images/profileimages/default.jpg'
     },
     accountCreated : String,
     dob : String,
@@ -23,14 +23,18 @@ const userSchema = new Schema({
         type : Schema.Types.ObjectId,
         ref : 'post'
     }],
-    stories : [{
+    likes :[{
         type : Schema.Types.ObjectId,
-        ref : 'story'
-    }], 
+        ref : 'like'
+    }],
     comment : [{
         type : Schema.Types.ObjectId,
         ref : 'comment'
     }],
+    stories : [{
+        type : Schema.Types.ObjectId,
+        ref : 'story'
+    }], 
     verificationcodeUsed : { type : Schema.Types.ObjectId,
         ref : 'otpverification'
     }

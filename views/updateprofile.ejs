@@ -15,7 +15,7 @@
                 <a class="mx-2" href="/">SayMyName</a></div>
             <div class="flex justify-between gap-2">
                     <div class="flex text-sm hover:bg-white hover:text-zinc-900 rounded-md px-2 py-1 gap-2">
-                        <a href="/profile"><img class="rounded-full border" src="/images/profileimages/clark kent.JPG" width="25" height="25" alt="userprofilepicture"></a>
+                        <a href="/profile"><img class="rounded-full border object-cover" src="<%= user.profileimage %>" width="25" height="25" alt="userprofilepicture"></a>
                         <a href="/profile">Profile</a>
                     </div>
             <div class="hover:bg-white hover:text-zinc-900 rounded-md p-1 text-sm"><a href="/home">Home</a></div>
@@ -26,25 +26,43 @@
     <main class="bg-zinc-700 h-144 p-5">
         <p class="text-2xl text-center mb-5">Update Profile</p>
         <div class="flex justify-center gap-40" id="updateprofileform"> 
-            <form class="flex flex-col mt-5" action="/update" method="post">
+            <form class="flex flex-col mt-5" enctype="multipart/form-data" action="/update" method="post">
                 <p class="text-lg mb-3">Basic Profile Details</p>
-                <input class="rounded-md mb-2 px-2 p-1 outline-none border border-2 border-zinc-500 text-zinc-300" type="text" name="oldname" id="oldname" value="Kent Clark" placeholder="Kent Clark" readonly>
+                <input class="rounded-md mb-2 px-2 p-1 outline-none border border-2 border-zinc-500 text-zinc-300" type="text" name="oldname" id="oldname" value="<%= user.name %>" placeholder="Kent Clark" readonly>
                 <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="newname" id="newname" placeholder="newname">
-                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="oldpassword" id="oldpassword" placeholder="oldpassword">
                 <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="newpassword" id="newpassword" placeholder="newpassword">
-                <input class="bg-zinc-900 rounded-md text-sm mb-3 px-2 py-2" type="file" name="profileimage" accept="image/*" placeholder="newpassword">
+                <div class="flex gap-2 rounded-md border border-2 border-zinc-500 mb-3 ">
+                <p class="text-md text-center pt-1 pl-2 text-zinc-400">newprofilephoto</p>
+                <input class="bg-zinc-800 rounded-md text-sm px-1 py-1 m-1" type="file" name="profileimage" accept="image/*" placeholder="newprofileimage">
+                </div>
+                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="currentpassword" id="currentpassword" placeholder="currentpassword" required>
                 <button class="rounded-md mb-2 px-2 py-1 outline-none bg-zinc-900 w-1/2 hover:bg-white hover:text-zinc-900" type="submit">Update</button>
+                <% if(update_success_msg && update_success_msg.length > 0)  { %>
+                    <% update_success_msg.forEach((success) => { %>
+                       <p class="text-xs rounded-md text-zinc-900 bg-green-300 mb-2 p-1"> <%= success %> </p> 
+                       <%  }); %>
+                    <% } %>  
+                <% if(update_error_msg && update_error_msg.length > 0)  { %>
+                     <% update_error_msg.forEach((error) => { %>
+                       <p class="text-xs rounded-md text-zinc-900 bg-red-300 mb-2 p-1"> <%= error %> </p> 
+                        <%  }); %>
+                      <% } %> 
             </form>
             <div class="border-zinc-500 border-1"></div>
             <form class="flex flex-col mt-5" action="/updateoptionaldetails" method="post">
                 <p class="text-lg mb-3">Optional Profile Details</p>
-                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500 w-65" type="text" name="dob" id="dob" placeholder="DOB(DD-MM-YYYY)">
+                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500 w-100" type="text" name="dob" id="dob" placeholder="DOB(DD-MM-YYYY)">
                 <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="gender" id="gender" placeholder="gender">
                 <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="phonenumber" id="phonenumber" placeholder="phonenumber">
                 <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="pincode" id="pincode" placeholder="pincode">
                 <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="address" id="address" placeholder="address">
                 <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="maritalstatus" id="maritalstatus" placeholder="maritalstatus">
                 <button class="rounded-md mb-2 px-2 py-1 outline-none bg-zinc-900 w-1/2 hover:bg-white hover:text-zinc-900" type="submit">Update</button>
+                <% if(update_optional_success_msg && update_optional_success_msg.length > 0)  { %>
+                    <% update_optional_success_msg.forEach((success) => { %>
+                       <p class="text-xs rounded-md text-zinc-900 bg-green-300 mb-2 p-1"> <%= success %> </p> 
+                       <%  }); %>
+                    <% } %> 
             </form>
         </div>
     </main>
