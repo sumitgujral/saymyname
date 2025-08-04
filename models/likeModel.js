@@ -6,14 +6,11 @@ const likeSchema = new Schema({
         type : Schema.Types.ObjectId,
         ref : 'user'
     },
-    likeDate : {
-       type : Date,
-       default : new Date(Date.now())
-    },
     post : {
         type : Schema.Types.ObjectId,
         ref : 'post'
-    }
+    },
+    likeDate : String
 })
 
 const likeModel = mongoose.model('like',likeSchema);

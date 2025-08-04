@@ -2,16 +2,16 @@ const mongoose = require('mongoose');
 const {Schema} = mongoose;
 
 const postSchema = new Schema({
+    caption : String,
+    postdata : String,
+    postCreated : String,
     userid : {
         type : Schema.Types.ObjectId,
         ref : 'user'
     },
-    postdata : String,
-    caption : String,
-    postCreated : String,
     likes : [{
         type : Schema.Types.ObjectId,
-        ref : 'like'
+        ref : 'user'
     }],
     comment : [{
         type : Schema.Types.ObjectId,

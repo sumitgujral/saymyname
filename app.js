@@ -73,6 +73,25 @@ function isLoggedIn(req,res,next){
       }
   }
 
+function formatDate(inputDateStr) {
+    const date = new Date(inputDateStr);
+     // Get hours and minutes
+     let hours = date.getHours();
+     const minutes = date.getMinutes().toString().padStart(2, '0');
+ 
+     // Determine AM/PM and convert to 12-hour format
+     const ampm = hours >= 12 ? 'PM' : 'AM';
+     hours = hours % 12;
+     hours = hours === 0 ? 12 : hours; // 0 becomes 12 in 12-hour format
+ 
+     // Format month, day, and year
+     const day = date.getDate();
+     const month = date.toLocaleString('default', { month: 'short' });
+     const year = date.getFullYear();
+ 
+     return `${hours}:${minutes} ${ampm} - ${month} ${day} ${year}`;
+}
+
 
 app.get('/', async (req, res) => {
   if(req.cookies.loogedincookie){
@@ -84,14 +103,13 @@ app.get('/', async (req, res) => {
 
 app.post('/getotp', async (req,res)=>{
   let {email} = req.body;
-  console.log(email)
   try{
   let otp = Math.floor(`${1000 + Math.random() * 9000}`);
   let expiryDate = new Date(Date.now() + 86400000);
   const mailOptions = {
     from : process.env.SMTP_AUTH_EMAIL,
     to : email,
-    subject : "Confirm your email for your SayMyName account",
+    subject : "Confirmation code for SayMyName account",
     html : `<div class="flex flex-col justify-between items-center text-white bg-zinc-900 text-center p-5">
                         <p class="text-xl text-center">Greetings,</p>   
                            <p class="text-lg text-center"> Use the below four digits code to verify your email and sign up.</p>
@@ -124,10 +142,11 @@ app.post('/getotp', async (req,res)=>{
       } else {
           console.log('Email sent on new mail:', info.response);
           req.flash('success',`Verification mail is send on ${email}`);
+          let newDateFormatted = formatDate(Date.now());
           let verificationcode = await otpverificationModel.create({
             email,
             verificationcodeGenerated : otp,
-            createdAt : new Date(Date.now()),
+            createdAt : newDateFormatted,
             expireAt : expiryDate,
           });
           return res.redirect('/')
@@ -163,12 +182,13 @@ app.post('/register', async (req,res) =>{
   else{
   bcrypt.genSalt(10, async function(err, salt) {
       bcrypt.hash(password, salt, async function(err, hash) {
+        let newDateFormatted = formatDate(Date.now());
           let user = await userModel.create({
             email,
             username,
             name,
             password:hash,
-            accountCreated : new Date(Date.now()),
+            accountCreated : newDateFormatted,
             verificationcode,
             verified : true
           })
@@ -231,7 +251,7 @@ app.post('/getresetpasswordotp', async (req, res) => {
       const mailOptions = {
         from : process.env.SMTP_AUTH_EMAIL,
         to : email,
-        subject : "Reset password of your SayMyName account",
+        subject : "Reset password code for SayMyName account",
         html : `<div class="flex flex-col justify-between items-center text-white bg-zinc-900 text-center p-5">
                             <p class="text-xl text-center">Greetings,</p>   
                                <p class="text-lg text-center"> Use the below four digits code for reset your account password.</p>
@@ -356,63 +376,112 @@ app.post('/create',isLoggedIn,upload.single('fileforpost'), async(req, res) => {
   if(req.file){
   let path = req.file.path;
   let pathwithpublic = `/${path.replace(/public\\/, '').replace(/\\/g, '/')}`;
+  let newDateFormatted = formatDate(Date.now());
   let post = await postModel.create({
     userid : user._id,
     postdata : pathwithpublic,
     caption,
-    postCreated : new Date(Date.now()),
+    postCreated : newDateFormatted,
   })
   let pushonuser = await userModel.findOneAndUpdate({email : req.user.email}, { $push : {posts : post._id}});
   req.flash('post_success',"Post is Created.");
 }else{
+  let newDateFormatted = formatDate(Date.now());
   let post = await postModel.create({
     userid : user._id,
     caption,
-    postCreated : new Date(Date.now()),
+    postCreated : newDateFormatted,
 })
 let pushonuser = await userModel.findOneAndUpdate({email : req.user.email}, { $push : {posts : post._id}});
 }
 
-res.redirect('/profile')
+res.redirect(req.headers.referer || '/')
 })
 
 app.post('/commentpost/:id',isLoggedIn, async (req,res)=>{
   let  { comment } = req.body;
+  let newDateFormatted = formatDate(Date.now());
     let usercomment = await commentModel.create({
     userid : req.user.userid,
     comment,
-    commentCreated : new Date(Date.now())
+    post : req.params.id,
+    commentCreated : newDateFormatted
   })
-  let post = await postModel.findOneAndUpdate({_id : req.params.id}, {$push : {comment : usercomment._id}})
-  await userModel.findOneAndUpdate({_id : req.user.userid},{ $push : {comment : post._id}})
-  res.redirect('/profile')
+  await postModel.findOneAndUpdate({_id : req.params.id}, {$push : {comment : usercomment._id}})
+  await userModel.findOneAndUpdate({_id : req.user.userid},{ $push : {comment : usercomment._id}})
+  res.redirect(req.headers.referer || '/')
 })
 
 app.get('/like/:id',isLoggedIn,async(req,res)=>{
-let post = await postModel.findOneAndUpdate({_id : req.params.id},{ $push : {likes : req.user.userid}})
-await userModel.findOneAndUpdate({_id : req.user.userid},{ $push : {likes : post._id}})
-await likeModel.create({
-  userid : req.user.userid,
-  post : post._id
-})
-res.redirect('/profile')
+let post = await postModel.findOne({_id :req.params.id}).populate('userid');
+let user = await userModel.findOne({_id : req.user.userid})
+let like = await likeModel.findOne({_id : req.user.userid})
+if (post.likes.indexOf(req.user.userid)===-1) {
+      post.likes.push(req.user.userid)
+      let newDateFormatted = formatDate(Date.now());
+      let like = await likeModel.create({
+      userid : req.user.userid,
+      post : post._id,
+      likeDate : newDateFormatted
+      })
+      await userModel.findOneAndUpdate({_id : req.user.userid},{ $push : {likes : like._id}})
+  }else{
+      post.likes.splice(post.likes.indexOf(req.user.userid), 1);
+      user.likes.splice(user.likes.indexOf(req.user.userid), 1);  
+  }
+await post.save()
+await user.save()
+res.redirect(req.headers.referer || '/')
 })
 
 app.get('/delete/:id',isLoggedIn,async(req,res)=>{
-await postModel.findOneAndDelete({_id : req.params.id})
-res.redirect('/profile')
+      await postModel.findOneAndDelete({_id : req.params.id})
+      await userModel.findOneAndUpdate({posts :req.params.id},{$pull : {posts : req.params.id}})
+      let comments = await commentModel.find({post : req.params.id})
+      let commentIds = comments.map(comment => comment._id);
+      await userModel.updateMany({ comment: { $in: commentIds } },{ $pullAll: { comment: commentIds } });
+      await commentModel.deleteMany({post : req.params.id})
+      let like = await likeModel.findOne({ post: req.params.id });
+      await userModel.findOneAndUpdate({likes : like._id},{$pull : {likes : like._id}})
+      await likeModel.deleteMany({ post: req.params.id });
+      res.redirect(req.headers.referer || '/')
 })
 
+app.get('/deletecomment/:id',isLoggedIn, async (req, res) => {
+  try {
+  let comment = await commentModel.findOne({_id : req.params.id})
+  let user = await userModel.findOne({_id : req.user.userid}).populate('comment')
+  user.comment.forEach(async (commentid)=>{
+      console.log(commentid._id.toString(),'| ', comment._id.toString() )
+    if(commentid._id.toString() === comment._id.toString()){
+      await commentModel.findOneAndDelete({_id : req.params.id})
+      await postModel.findOneAndUpdate({comment : req.params.id},{$pull : {comment : req.params.id}}) 
+      await userModel.findOneAndUpdate({comment : req.params.id},{$pull : {comment : req.params.id}})     
+    }
+})
+res.redirect(req.headers.referer || '/')
+} catch (error) {
+    console.log(error)
+}
+})
 
 app.get('/profile',isLoggedIn,async (req, res) => {
     let user = await userModel.findOne({email : req.user.email}).populate('posts');
-    let post = await postModel.findOne({userid : req.user._id})
     res.render('profile',{user});
   })
 
+
+app.get('/poststats/:id',isLoggedIn, async (req, res) => {
+  let post = await postModel.findOne({_id : req.params.id}).populate('userid').populate('likes').populate('comment')
+  let user =  await userModel.findOne({_id : req.user.userid})
+    res.render('poststats',{post,user})
+})
+
+
 app.get('/home',isLoggedIn, async (req, res) => {
   let user = await userModel.findOne({email : req.user.email})
-  res.render('home',{user});
+  let post = await postModel.find().populate('userid').populate('likes').populate('comment')
+    res.render('home',{post,user})
   })
 
 
@@ -421,13 +490,6 @@ app.get('/logout', (req, res) => {
     res.cookie('loogedincookie',"");
     res.redirect('/')
   })
-
-
-app.get('/poststats',isLoggedIn,(req, res) => {
-    res.render('poststats')
-  })
-
-
  
 app.get('/support', (req, res) => {
     res.render('support')

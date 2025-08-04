@@ -29,12 +29,11 @@
                 <img class="rounded-full border object-cover" src="<%= user.profileimage %>"  width="20" height="20" alt="userprofilepicture">
                 <p class="text-white text-xs">@<%= user.username %></p>
                 </div>
-                <div class="border border-2 overflow-hidden rounded-md mt-2"><img class="object-cover h-[160px] w-[300px]" src="<%= post.postdata %>" height="" width="300" alt="postimage"></div>
+                <div class="border border-2 overflow-hidden rounded-md mt-2"><img  class="object-cover" src="<%= post.postdata %>" height="" width="300" alt="postimage"></div> <!--class="object-cover h-[160px] w-[300px]" -->
                 <p class="text-[12px] text-white ml-2 mt-1"><%= post.caption %></p>
                 <a class="ml-1 rounded-md text-[13px] hover:bg-white hover:p-1" href="/like/<%= post._id %>">❤</a>
-                <a class="rounded-md text-[12px] hover:bg-zinc-900 hover:text-white" href="/poststats"><%= post.likes.length %> likes</a>
-                
-                <a class="rounded-md text-[12px] hover:bg-zinc-900 hover:text-white" href="/poststats"> <span>🗨</span><%= post.comment.length %> comments</a>
+                <a class="rounded-md text-[12px] hover:bg-zinc-900 hover:text-white" href="/poststats/<%= post._id %>"><%= post.likes.length %> likes</a>
+                <a class="rounded-md text-[12px] hover:bg-zinc-900 hover:text-white" href="/poststats/<%= post._id %>"> <span>🗨 </span><%= post.comment.length %> comments</a>
                 <a class="rounded-md text-[12px] hover:bg-red-800 hover:p-1" href="/delete/<%= post._id %>" >❌ delete</a>
                 <div>
                 <form action="/commentpost/<%= post._id %>" method="post">
@@ -46,8 +45,8 @@
             </div>
              <% }) %>
              <% } else {%>
-                    <p>You don't have any post yet.</p>
-                    <p>Create your first post in Create Post.</p>
+                    <p class="text-center mt-10 text-xl">You don't have any post yet.</p>
+                    <p class="text-center text-xl">Create your first post in Create Post.</p>
                  <% } %>
         </div>
         <div class = "border-r-2 border-zinc-400"></div>

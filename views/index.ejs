@@ -20,11 +20,12 @@
         </nav>    
     </header>
     <main class="flex justify-center gap-40 bg-zinc-700 h-144 p-10">
-        <div id="login-form">
-            <p class="text-xl">Login</p>
+       <div> 
+         <div class="bg-zinc-700 border-zinc-800 border-4 p-4 rounded-md" id="login-form">
+            <p class="text-xl text-zinc-900 font-bold">Login</p>
             <form class="flex flex-col mt-3" action="/login" method="post">
-                <input class="rounded-md mb-2 px-2 p-1 outline-none border border-2 border-zinc-500" type="text" name="usernameoremail" id="usernameoremail" placeholder="email or username" required>
-                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="password" name="password" id="password" placeholder="password" required>
+                <input class="rounded-md mb-2 px-2 p-1 outline-none border border-2 border-zinc-800" type="text" name="usernameoremail" id="usernameoremail" placeholder="email or username" required>
+                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-800" type="password" name="password" id="password" placeholder="password" required>
                 <% if(login_error_msg && login_error_msg.length > 0)  { %>
                     <% login_error_msg.forEach((error) => { %>
                        <p class="text-xs rounded-md text-zinc-900 bg-red-300 mb-2 p-1"> <%= error %> </p> 
@@ -33,15 +34,16 @@
                 <button class="rounded-md mb-2 px-2 py-1 outline-none bg-zinc-900 w-1/2 hover:bg-white hover:text-zinc-900" type="submit">Login</button>
             </form>
         </div>
-        <div class = "border-r-2 border-zinc-400"></div>
+    </div>
+        <div class = "border-r-2 border-zinc-800"></div>
         <div class="flex flex-col gap-1" id="registration-form">
-           <div> <p class="text-xl" >Sign Up</p>
+           <div class="bg-zinc-700 border-zinc-800 border-4 p-4 rounded-md"> <p class="text-xl text-zinc-900 font-bold" >Sign Up</p>
             <form class="mt-3 flex flex-col mt-1" action="/register" method="post">
-                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="email" id="email" placeholder="email" required>
-                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="name" id="name" placeholder="name" required>
-                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="username" id="username" placeholder="username" required>
-                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="password" name="password" id="password" placeholder="password" required>
-                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="verificationcode" id="verificationcode" placeholder="verification code" required>
+                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-800" type="text" name="email" id="email" placeholder="email" required>
+                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-800" type="text" name="name" id="name" placeholder="name" required>
+                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-800" type="text" name="username" id="username" placeholder="username" required>
+                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-800" type="password" name="password" id="password" placeholder="password" required>
+                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-800" type="text" name="verificationcode" id="verificationcode" placeholder="verification code" required>
                 <% if(registration_error_msg && registration_error_msg.length > 0)  { %>
                     <% registration_error_msg.forEach((error) => { %>
                        <p class="text-xs rounded-md text-zinc-900 bg-red-300 mb-2 p-1"> <%= error %> </p> 
@@ -50,13 +52,13 @@
                 <button class="rounded-md mb-2 px-2 py-1 outline-none bg-zinc-900 w-1/3 hover:bg-white hover:text-zinc-900" type="submit">Register</button>
             </form>
         </div>
-            <div class = "mt-4 border-1 border-zinc-400"></div>
+            <div class = "m-2 border-1 border-zinc-800"></div>
 
-            <div>
-            <p class="text-lg mt-4" >Email Verification</p>
+            <div class="bg-zinc-700 border-zinc-800 border-4 p-4 rounded-md">
+            <p class="text-lg text-zinc-900 font-bold" >Email Verification</p>
             <form action="/getotp" method="post">
                 <div>
-                    <input class="mt-2 rounded-md mb-2 pl-2 pr-4 py-1 outline-none border border-2 border-zinc-500 w-[210px]" type="text" name="email" id="email" placeholder="email for verification code" required>
+                    <input class="mt-2 rounded-md mb-2 pl-2 pr-4 py-1 outline-none border border-2 border-zinc-800 w-[210px]" type="text" name="email" id="email" placeholder="email for verification code" required>
                     <button class="rounded-md mb-2 px-3 py-1 outline-none border text-[15] border-1 bg-zinc-900 text-white-700 border-zinc-900 hover:bg-white hover:text-zinc-900" id='btn' type="submit">Get Code</button>
                     <% if(success_msg && success_msg.length > 0)  { %>
                         <% success_msg.forEach((success) => { %>

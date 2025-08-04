@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "type": "chrome",
+            "name": "http://localhost:3000/poststats/6890c1cf9d8cdca2389d9982",
+            "request": "launch",
+            "url": "http://localhost:3000/poststats/6890c1cf9d8cdca2389d9982"
+        }
+    ]
+}

@@ -22,26 +22,34 @@
         </div>
         </nav>    
     </header>
-    <main class="flex flex-grow justify-center gap-50 bg-zinc-700 p-10">
+    <main class="flex flex-grow justify-center min-h-144 gap-50 bg-zinc-700 p-10">
         <div id="posts">
             <h3 class="text-white text-xl mb-3 text-center">Members Posts</h3>
+            <% if(user.posts.length>0){ %>
+            <% post.reverse().forEach(function(post){ %>
             <div class="bg-zinc-800 p-3 mb-5 rounded-md" id="postcontainer">
                 <div class="flex gap-2">
-                <img class="rounded-full border" src="/images/profileimages/clark kent.JPG" width="35" height="35" alt="userprofilepicture">
-                <p class="text-white text-md mt-1 text-zinc-200">@username</p>
+                <img class="rounded-full border" src="<%= post.userid.profileimage %>" width="35" height="35" alt="userprofilepicture">
+                <p class="text-white text-md mt-1 text-zinc-200">@<%= post.userid.username %></p>
                 </div>
-                <div class="border border-3 rounded-md mt-2"><img class="object-cover h-[320px] w-[600px]" src="/images/postimages/supernan.webp" alt="postimage"></div>
-                <p class="text-[14px] text-white ml-2 mt-1">Your SuperMan is Here ✔</p>
-                <button class=" rounded-md text-[13px] mt-1 ml-2 hover:bg-white hover:p-1" onclick="(alert('like added'))"><p>❤</p></button>
-                <a class=" rounded-md text-[13px] hover:bg-zinc-900 hover:text-white" href="/poststats">5 likes</a>
-                <a class=" rounded-md text-[13px] hover:bg-zinc-900 hover:text-white" href="/poststats"> <span> 🗨</span> 2 comments</a>
+                <div class="border border-3 rounded-md mt-2"><img src="<%= post.postdata %>" width="420px" alt="postimage"></div>
+                <p class="text-[14px] text-white ml-2 mt-1"><%= post.caption %></p>
+                <a class=" rounded-md text-[13px] mt-1 ml-2 hover:bg-white hover:p-1" href="/like/<%= post._id %>">❤</a>
+                <a class=" rounded-md text-[13px] hover:bg-zinc-900 hover:text-white" href="/poststats/<%= post._id %>"><%= post.likes.length %> likes</a>
+                <a class=" rounded-md text-[13px] hover:bg-zinc-900 hover:text-white" href="/poststats/<%= post._id %>"> <span> 🗨</span><%= post.comment.length %> comments</a>
                 <div>
+                <form action="/commentpost/<%= post._id %>" method="post">
                 <input class="rounded-md ml-2 text-[13px] mt-2 px-3 py-1 outline-none border border-1 border-zinc-500 w-[130px] placeholder:text-[12px]" type="text" name="comment" placeholder="post comment">
-                <button  class="rounded-md text-[14px] mb-2 outline-none border-none bg-zinc-900 text-white-700 hover:bg-white hover:text-zinc-900 h-[30px] w-[50px]" onclick="(alert('comment added'))"><p>Post</p></button>
+                <button  class="rounded-md text-[14px] mb-2 outline-none border-none bg-zinc-900 text-white-700 hover:bg-white hover:text-zinc-900 h-[30px] w-[50px]" type="submit""><p>Post</p></button>
+                </form>
                 </div>
-                <p class="px-1 ml-2 text-white text-[11px]">01:25PM, July 25 2025</p>
+                <p class="px-1 ml-2 text-white text-[11px]"><%=post.postCreated %></p>
             </div>
-            
+            <% }) %>
+             <% } else {%>
+                    <p class="text-center mt-20 text-2xl">No Post are posted yet.</p>
+                    <p class="text-center text-2xl">Create your first post in Profile Create Post.</p>
+                 <% } %>
             
     </main>
 

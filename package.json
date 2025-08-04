@@ -9,7 +9,9 @@
     "express-session": "^1.18.2",
     "jsonwebtoken": "^9.0.2",
     "mailersend": "^2.6.0",
-    "mongoose": "^8.16.5",
+    "mongodb": "^6.18.0",
+    "mongoose": "^8.17.0",
+    "mongoose-autopopulate": "^1.1.0",
     "multer": "^2.0.2",
     "nodemailer": "^7.0.5",
     "nodemon": "^3.1.10"
@@ -30,5 +32,8 @@
     "url": "https://github.com/sumitgujral/say-my-name/issues"
   },
   "homepage": "https://github.com/sumitgujral/say-my-name#readme",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^24.2.0"
+  }
 }

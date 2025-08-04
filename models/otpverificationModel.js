@@ -5,8 +5,8 @@ const otpverificationSchema = new Schema({
    email : String,
    verificationcodeGenerated : [],
    verificationcoderesetpassword : [],
-    createdAt: Date,
-    expireAt : Date,
+    createdAt: String,
+    expireAt : String,
 })
 
 const otpverificationModel = mongoose.model('otpverification',otpverificationSchema);
