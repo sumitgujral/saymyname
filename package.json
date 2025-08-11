@@ -21,6 +21,7 @@
   "main": "app.js",
   "scripts": {
     "build": "npm run build",
+    "start": "app.js",
     "main": "app.js"
   },
   "repository": {
