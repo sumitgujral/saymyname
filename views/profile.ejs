@@ -60,7 +60,7 @@
         <div class="flex flex-col mt-8 border-t-1">
         <h3 class="text-white text-xl py-4 text-center">Create Post</h3>
         <form class=" flex flex-col gap-2" enctype="multipart/form-data" action="/create" method="post">
-            <input class="bg-zinc-900 rounded-md text-sm p-2" type="file" name="fileforpost">
+            <input class="rounded-md text-sm border-1 p-1 border-zinc-400 file:mr-4 file:border-1 file:border-zinc-900 block w-full file:rounded-2xl file:bg-zinc-900 file:py-2 file:px-4 hover:file:bg-white hover:file:font-semibold hover:file:text-zinc-900" type="file" id="file" name="fileforpost">
             <textarea class="resize-none outline-none border-1 border-zinc-400 rounded-md p-1" name="caption" id="caption" placeholder="Caption.." cols="5" rows="2"></textarea>
             <button class="bg-zinc-900 rounded-md text-sm outline-none p-1 w-1/3 hover:bg-white hover:text-zinc-900 " type="submit">Create</button>
             <% if(post_success_msg && post_success_msg.length > 0)  { %>

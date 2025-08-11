@@ -29,12 +29,12 @@
             <form class="flex flex-col mt-5" enctype="multipart/form-data" action="/update" method="post">
                 <p class="text-lg mb-3">Basic Profile Details</p>
                 <input class="rounded-md mb-2 px-2 p-1 outline-none border border-2 border-zinc-500 text-zinc-300" type="text" name="oldname" id="oldname" value="<%= user.name %>" placeholder="Kent Clark" readonly>
-                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="newname" id="newname" placeholder="newname">
+                <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="newname" id="newname" placeholder="newname" required>
                 <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="newpassword" id="newpassword" placeholder="newpassword">
                 <div class="flex gap-2 rounded-md border border-2 border-zinc-500 mb-3 ">
                 <p class="text-md text-center pt-1 pl-2 text-zinc-400">newprofilephoto</p>
-                <input class="bg-zinc-800 rounded-md text-sm px-1 py-1 m-1" type="file" name="profileimage" accept="image/*" placeholder="newprofileimage">
-                </div>
+                <input class="rounded-r-md bg-zinc-600 text-sm px-1 py-1  file:mr-2 file:border-1 file:border-zinc-900 block w-full file:rounded-md file:bg-zinc-900 file:py-1 file:px-1 hover:file:bg-white hover:file:font-semibold hover:file:text-zinc-900" type="file" name="profileimage" accept="image/*" placeholder="newprofileimage">    
+            </div>
                 <input class="rounded-md mb-2 px-2 py-1 outline-none border border-2 border-zinc-500" type="text" name="currentpassword" id="currentpassword" placeholder="currentpassword" required>
                 <button class="rounded-md mb-2 px-2 py-1 outline-none bg-zinc-900 w-1/2 hover:bg-white hover:text-zinc-900" type="submit">Update</button>
                 <% if(update_success_msg && update_success_msg.length > 0)  { %>

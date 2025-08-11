@@ -13,7 +13,8 @@ const jwt = require('jsonwebtoken');
 const flash = require('connect-flash');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
-const upload = require('./configs/multerconfig')
+const {uploadpost, uploadprofile} = require('./configs/multerconfig');
+const fs = require('fs');
 
 app.set('view engine','ejs')
 app.use(express.static(path.join(__dirname,'public')));
@@ -336,21 +337,29 @@ app.post('/resetpassword', async (req,res) =>{
 
 app.get('/updateprofile',isLoggedIn, async(req, res) => {
   let user = await userModel.findOne({email : req.user.email})
-       res.render('updateprofile',{user});
+      res.render('updateprofile',{user});
 })
 
-app.post('/update',isLoggedIn,upload.single('profileimage'), async (req, res) => {
+app.post('/update',isLoggedIn,uploadprofile.single('profileimage'), async (req, res) => {
   let { newname ,newpassword ,profileimage , currentpassword} = req.body;
   let user = await userModel.findOne({email : req.user.email})
   let match =  bcrypt.compare(currentpassword, user.password);
   if(match){
+    let profile = await userModel.findOne({email : req.user.email});
+          let profilePath = path.join(__dirname,'public', profile.profileimage);
+          fs.unlink(profilePath,(err) => {
+              if (err) {
+                 console.error('Error deleting file:', err);
+                 }
+            });
     bcrypt.genSalt(10, async function(err, salt) {
       bcrypt.hash(newpassword, salt, async function(err, hash) { 
         if(req.file){
           let path = req.file.path;
           let pathwithpublic = `/${path.replace(/public\\/, '').replace(/\\/g, '/')}`;
           await userModel.findOneAndUpdate({email : req.user.email}, { $set : {name : newname,password: hash,profileimage: pathwithpublic} })
-        }else{
+        } 
+        else{
           await userModel.findOneAndUpdate({email : req.user.email}, { $set : {name : newname,password: hash} })
         }   
     })
@@ -370,7 +379,7 @@ app.post('/updateoptionaldetails',isLoggedIn, async(req, res) => {
     res.redirect('/updateprofile')
 })
 
-app.post('/create',isLoggedIn,upload.single('fileforpost'), async(req, res) => {
+app.post('/create',isLoggedIn,uploadpost.single('fileforpost'), async(req, res) => {
   let {caption} = req.body;
   let user = await userModel.findOne({email : req.user.email})
   if(req.file){
@@ -415,35 +424,51 @@ app.post('/commentpost/:id',isLoggedIn, async (req,res)=>{
 app.get('/like/:id',isLoggedIn,async(req,res)=>{
 let post = await postModel.findOne({_id :req.params.id}).populate('userid');
 let user = await userModel.findOne({_id : req.user.userid})
-let like = await likeModel.findOne({_id : req.user.userid})
-if (post.likes.indexOf(req.user.userid)===-1) {
-      post.likes.push(req.user.userid)
-      let newDateFormatted = formatDate(Date.now());
-      let like = await likeModel.create({
-      userid : req.user.userid,
-      post : post._id,
-      likeDate : newDateFormatted
-      })
-      await userModel.findOneAndUpdate({_id : req.user.userid},{ $push : {likes : like._id}})
-  }else{
-      post.likes.splice(post.likes.indexOf(req.user.userid), 1);
-      user.likes.splice(user.likes.indexOf(req.user.userid), 1);  
-  }
+
+const hasLiked = post.likes.includes(req.user.userid);
+
+if (!hasLiked) {
+    post.likes.push(req.user.userid);
+    let newDateFormatted = formatDate(Date.now());
+    let like = await likeModel.create({
+        userid: req.user.userid,
+        post: post._id,
+        likeDate: newDateFormatted
+    });
+    await userModel.findOneAndUpdate({ _id: req.user.userid }, { $push: { likes: like._id } });
+} else {
+    post.likes.splice(post.likes.indexOf(req.user.userid), 1);
+
+    let likeToDelete = await likeModel.findOneAndDelete({ userid: req.user.userid, post: post._id });
+
+    if (likeToDelete) {
+        await userModel.findOneAndUpdate({ _id: req.user.userid }, { $pull: { likes: likeToDelete._id } });
+    }
+}
 await post.save()
-await user.save()
 res.redirect(req.headers.referer || '/')
 })
 
 app.get('/delete/:id',isLoggedIn,async(req,res)=>{
+      let post = await postModel.findOne({_id : req.params.id});
+      let postPath = path.join(__dirname,'public', post.postdata);
+      fs.unlink(postPath,(err) => {
+        if (err) {
+            console.error('Error deleting file:', err);
+        }
+      });
       await postModel.findOneAndDelete({_id : req.params.id})
       await userModel.findOneAndUpdate({posts :req.params.id},{$pull : {posts : req.params.id}})
       let comments = await commentModel.find({post : req.params.id})
       let commentIds = comments.map(comment => comment._id);
       await userModel.updateMany({ comment: { $in: commentIds } },{ $pullAll: { comment: commentIds } });
       await commentModel.deleteMany({post : req.params.id})
-      let like = await likeModel.findOne({ post: req.params.id });
-      await userModel.findOneAndUpdate({likes : like._id},{$pull : {likes : like._id}})
-      await likeModel.deleteMany({ post: req.params.id });
+      let likes = await likeModel.find({ post: req.params.id });
+       if (likes.length > 0) {
+        let likeIds = likes.map(like => like._id);
+        await userModel.updateMany({ likes: { $in: likeIds } }, { $pullAll: { likes: likeIds } });
+        await likeModel.deleteMany({ post: req.params.id });
+    }
       res.redirect(req.headers.referer || '/')
 })
 
