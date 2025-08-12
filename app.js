@@ -384,7 +384,7 @@ app.post('/create',isLoggedIn,uploadpost.single('fileforpost'), async(req, res) 
   let user = await userModel.findOne({email : req.user.email})
   if(req.file){
   let path = req.file.path;
-  let pathwithpublic = `/${path.replace(/public\\/, '').replace(/\\/g, '/')}`;
+  let pathwithpublic = path.replace(/\\/g, '/').split('public')[1];
   let newDateFormatted = formatDate(Date.now());
   let post = await postModel.create({
     userid : user._id,
