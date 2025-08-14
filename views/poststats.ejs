@@ -31,7 +31,8 @@
             <img class="rounded-full border object-cover" src="<%= post.userid.profileimage %>" width="20" height="20" alt="userprofilepicture">
             <p class="text-white text-sm">@<%= post.userid.username %></p>
             </div>
-             <div class="border border-3 overflow-hidden rounded-md mt-2"><img class="object-cover" src="<%= post.postdata %>" height="" width="300" alt="postimage"></div>  
+             <div class="border border-3 overflow-hidden rounded-md mt-2"><img class="object-cover" src="<%= post.postdata %>" height="" width="300" alt="postimage"></div> 
+            <p class="text-[16px] text-white mt-1"><%= post.caption %></p> 
             <a class=" rounded-md hover:bg-white hover:p-1" href="/like/<%= post._id %>">❤</a>
             <a class=" rounded-md hover:bg-zinc-900 hover:text-white"><%= post.likes.length %> likes</a>
             <a class=" rounded-md hover:bg-zinc-900 hover:text-white"> <span> 🗨 </span><%= post.comment.length %> comments</a>

@@ -51,11 +51,11 @@ app.use((req, res, next) => {
 
 
 let transporter = nodemailer.createTransport({
-  host : "smtp.mailersend.net",
-  port: 587,
+  host : process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
   auth: {
-    user: process.env.SMTP_AUTH_EMAIL,
-    pass: process.env.SMTP_AUTH_PASSWORD,
+    user: process.env.SMTP_USERNAME,
+    pass: process.env.SMTP_PASSWORD,
   }
 })
 
@@ -108,7 +108,7 @@ app.post('/getotp', async (req,res)=>{
   let otp = Math.floor(`${1000 + Math.random() * 9000}`);
   let expiryDate = new Date(Date.now() + 86400000);
   const mailOptions = {
-    from : process.env.SMTP_AUTH_EMAIL,
+    from : process.env.SMTP_FROM,
     to : email,
     subject : "Confirmation code for SayMyName account",
     html : `<div class="flex flex-col justify-between items-center text-white bg-zinc-900 text-center p-5">
@@ -250,7 +250,7 @@ app.post('/getresetpasswordotp', async (req, res) => {
     if(sendotpbyEmail){
       let email = sendotpbyEmail.email;
       const mailOptions = {
-        from : process.env.SMTP_AUTH_EMAIL,
+        from : process.env.SMTP_FROM,
         to : email,
         subject : "Reset password code for SayMyName account",
         html : `<div class="flex flex-col justify-between items-center text-white bg-zinc-900 text-center p-5">
@@ -278,7 +278,7 @@ app.post('/getresetpasswordotp', async (req, res) => {
     if(sendotpbyusername){
        let email = sendotpbyusername.email;
        const mailOptions = {
-        from : process.env.SMTP_AUTH_EMAIL,
+        from : process.env.SMTP_FROM,
         to : email,
         subject : "Reset password of your SayMyName account",
         html : `<div class="flex flex-col justify-between items-center text-white bg-zinc-900 text-center p-5">
@@ -356,7 +356,7 @@ app.post('/update',isLoggedIn,uploadprofile.single('profileimage'), async (req, 
       bcrypt.hash(newpassword, salt, async function(err, hash) { 
         if(req.file){
           let path = req.file.path;
-          let pathwithpublic = `/${path.replace(/public\\/, '').replace(/\\/g, '/')}`;
+          let pathwithpublic = path.replace(/\\/g, '/').split('public')[1];
           await userModel.findOneAndUpdate({email : req.user.email}, { $set : {name : newname,password: hash,profileimage: pathwithpublic} })
         } 
         else{
